@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>super-agent — Demo repository</title>
+<style>
+  :root {
+    --bg: #f6f8fa;
+    --surface: #ffffff;
+    --text: #1f2328;
+    --muted: #59636e;
+    --border: #d1d9e0;
+    --accent: #0969da;
+    --code-bg: #f6f8fa;
+    --output-bg: #1f2328;
+    --output-text: #7ee787;
+    --shadow: 0 1px 3px rgba(31, 35, 40, 0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117;
+      --surface: #151b23;
+      --text: #f0f6fc;
+      --muted: #9198a1;
+      --border: #3d444d;
+      --accent: #4493f8;
+      --code-bg: #151b23;
+      --output-bg: #010409;
+      --output-text: #7ee787;
+      --shadow: 0 1px 3px rgba(1, 4, 9, 0.6);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 20px 64px; }
+  header h1 { font-size: 2rem; letter-spacing: -0.02em; }
+  header p { color: var(--muted); margin-top: 4px; }
+  .badge {
+    display: inline-block; margin-top: 12px; padding: 2px 10px;
+    border: 1px solid var(--border); border-radius: 999px;
+    font-size: 0.8rem; color: var(--muted);
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: var(--shadow);
+    margin-top: 28px; overflow: hidden;
+  }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+  }
+  .card-head h2 { font-size: 1rem; font-weight: 600; }
+  .card-head span { font-size: 0.8rem; color: var(--muted); font-family: ui-monospace, SFMono-Regular, monospace; }
+  pre {
+    padding: 16px 20px; background: var(--code-bg);
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.86rem; line-height: 1.55; overflow-x: auto;
+  }
+  .card-body { padding: 16px 20px 20px; }
+  button {
+    background: var(--accent); color: #ffffff; border: none;
+    border-radius: 6px; padding: 8px 18px;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:disabled { opacity: 0.6; cursor: default; }
+  #output {
+    margin-top: 16px; padding: 14px 16px; border-radius: 6px;
+    background: var(--output-bg); color: var(--output-text);
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.86rem; display: none; white-space: pre-wrap;
+  }
+  #output.visible { display: block; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
+  .fact {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .fact b { display: block; font-size: 1.05rem; }
+  .fact span { color: var(--muted); font-size: 0.82rem; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 0.85rem; text-align: center; }
+  footer code { font-family: ui-monospace, SFMono-Regular, monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>super-agent</h1>
+    <p>Demo repository for trying dsh-superagent.</p>
+    <span class="badge">Java</span>
+  </header>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Hello, World!</h2>
+      <span>HelloWorld.java</span>
+    </div>
+    <pre id="source">public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}</pre>
+    <div class="card-body">
+      <button id="run" type="button">Run program</button>
+      <div id="output" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Repository at a glance</h2>
+    </div>
+    <div class="card-body">
+      <div class="grid">
+        <div class="fact"><b id="size">&mdash;</b><span>HelloWorld.java</span></div>
+        <div class="fact"><b>Java</b><span>primary language</span></div>
+        <div class="fact"><b>No build step</b><span>plain static page</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Serve this page with <code>python3 -m http.server</code> from the repository root, or open <code>index.html</code> directly.
+  </footer>
+</div>
+
+<script>
+  // The repository is a plain Java project with no backend: the page mirrors the
+  // program's source and reproduces its well-defined output when "Run" is clicked.
+  var PROGRAM_OUTPUT = "Hello, World!";
+
+  var runButton = document.getElementById("run");
+  var output = document.getElementById("output");
+
+  runButton.addEventListener("click", function () {
+    runButton.disabled = true;
+    runButton.textContent = "Running…";
+    output.classList.add("visible");
+    output.textContent = "$ javac HelloWorld.java && java HelloWorld\n";
+    setTimeout(function () {
+      output.textContent += PROGRAM_OUTPUT + "\n";
+      runButton.disabled = false;
+      runButton.textContent = "Run program";
+    }, 400);
+  });
+
+  // When served over HTTP, keep the mirrored source in sync with the file on
+  // disk and show its real size; the embedded copy and the fallback keep the
+  // page usable when opened directly from the filesystem.
+  fetch("HelloWorld.java", { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); })
+    .then(function (src) {
+      document.getElementById("source").textContent = src;
+      document.getElementById("size").textContent = new Blob([src]).size + " B";
+    })
+    .catch(function () {
+      document.getElementById("size").textContent = "~124 B";
+    });
+</script>
+</body>
+</html>
